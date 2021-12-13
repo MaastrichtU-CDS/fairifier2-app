@@ -9,7 +9,7 @@ class TermMapper():
     def __init__(self, tripleStore: AbstractTripleStore):
         self.tripleStore = tripleStore
 
-    # @cache
+    @cache
     def get_unmapped_types(self) -> list[dict[str, Union[str, URIRef]]]:
         # TODO: allow for other roo:local_value predicates
         query = '''
@@ -18,7 +18,6 @@ class TermMapper():
             PREFIX owl: <http://www.w3.org/2002/07/owl#>
             PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
             SELECT DISTINCT ?type ?label
-            FROM <http://www.ontotext.com/explicit>
             WHERE {
                 ?obj rdf:type ?type.
                 ?obj roo:local_value ?value .
@@ -87,18 +86,16 @@ class TermMapper():
     # @cache
     def get_values_for_type(self, type: URIRef) -> list[str]:
         query = '''
+            PREFIX roo: <http://www.cancerdata.org/roo/>
             PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
             PREFIX owl: <http://www.w3.org/2002/07/owl#>
             PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
-            PREFIX roo: <http://www.cancerdata.org/roo/>
             SELECT DISTINCT ?value
-            FROM <http://www.ontotext.com/explicit>
             WHERE {
                 ?obj rdf:type %s .
                 ?obj roo:local_value ?value .
-                FILTER(?type NOT IN (owl:NamedIndividual, owl:Thing)).
             }
-            ORDER BY ?value
+            ORDER BY ?type
         ''' % (type.n3())
 
         return [res['value']['value'] for res in self.tripleStore.select_sparql(query)]
