@@ -1,9 +1,9 @@
 from flask import Flask, request
 from flask_cors import CORS
 from rdflib.term import URIRef
+from datasources.triples import SPARQLTripleStore
 
 from fairifier.termmapping import TermMapper
-from fairifier.triplestore import GraphDBTripleStore
 
 app = Flask(__name__)
 app.config['CORS_HEADERS'] = 'Content-Type'
@@ -14,9 +14,9 @@ CORS(app)
 #     }
 # })
 
-endpoint = 'http://172.18.22.17:3030/ds/sparql'
+triple_addr = 'http://172.18.22.17:3030/ds'
 # endpoint = 'http://172.18.22.17:7201/repositories/data'
-mapper = TermMapper(GraphDBTripleStore(endpoint))
+mapper = TermMapper(SPARQLTripleStore(triple_addr + '/sparql', update_endpoint=triple_addr + '/update'))
 
 @app.route('/classes', methods=['GET'])
 def get_classes():
@@ -38,19 +38,22 @@ def get_mappables():
     return {
         'localValues': values, 
         'targets': [{'uri': str(target['uri']), 'label': str(target['label'])} for target in targets], 
-        'mappings': [{'value': mapping['value'], 'target': str(mapping['target'])} for mapping in mappings]
+        'mappings': {mapping['value']: str(mapping['target']) for mapping in mappings}
     }
 
 @app.route("/add-mapping", methods=['POST'])
 def add_mapping():
-    data = request.get_json()
-    source_type = URIRef(data['type'])
-    value = data['value']
-    target = URIRef(data['target'])
+    source_type = URIRef(request.form.get('type'))
+    value = request.form.get('value')
+    target = URIRef(request.form.get('target'))
 
     mapper.add_mapping(target, source_type, value)
 
-    return {'status': 'success'}
+    mappings = mapper.get_mappings_for_type(URIRef(source_type))
+
+    return {
+        'mappings': {mapping['value']: str(mapping['target'])for mapping in mappings}
+    }
 
 if __name__ == "__main__":
     app.run(debug=True)

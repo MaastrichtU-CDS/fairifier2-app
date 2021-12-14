@@ -1,12 +1,13 @@
+from datasources.triples import SPARQLTripleStore, AbstractTripleSource
+
 from typing import Union
 from rdflib.term import URIRef
-from .triplestore import AbstractTripleStore
 from functools import cache
 
 
 class TermMapper():
 
-    def __init__(self, tripleStore: AbstractTripleStore):
+    def __init__(self, tripleStore: AbstractTripleSource):
         self.tripleStore = tripleStore
 
     @cache
@@ -67,7 +68,7 @@ class TermMapper():
         # ORDER BY ?type
         # '''
 
-        results = self.tripleStore.select_sparql(query)
+        results = self.tripleStore.sparql_get(query)
 
         unmapped = []
 
@@ -98,7 +99,7 @@ class TermMapper():
             ORDER BY ?type
         ''' % (type.n3())
 
-        return [res['value']['value'] for res in self.tripleStore.select_sparql(query)]
+        return [res['value']['value'] for res in self.tripleStore.sparql_get(query)]
 
     # @cache
     def get_terms_for_type(self, type: URIRef) -> dict[str, Union[str, URIRef]]:     
@@ -113,7 +114,7 @@ class TermMapper():
             ORDER BY ?label
         ''' % (type.n3())
 
-        results = self.tripleStore.select_sparql(query)
+        results = self.tripleStore.sparql_get(query)
 
         target = []
 
@@ -171,7 +172,7 @@ class TermMapper():
             }
         """ % (type)
 
-        results = self.tripleStore.select_sparql(query)
+        results = self.tripleStore.sparql_get(query)
 
         mapping = []
 
@@ -184,7 +185,6 @@ class TermMapper():
 
         return mapping
 
-    # @cache
     def add_mapping(self, target: URIRef, type: URIRef, value: str) -> None:
         """Adds a mapping to the database - essentially an 
         equivalent class in OWL that implies any object that has
@@ -226,4 +226,4 @@ class TermMapper():
             } } WHERE { }
         """ % (target, type, value)
 
-        self.tripleStore.update_sparql(query)
+        self.tripleStore.sparql_update(query)

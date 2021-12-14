@@ -28,8 +28,9 @@ class TermMapper extends React.Component {
 
         this.state = {
             classes: [],
-            selectedClass: "",
+            selectedClass: null,
             mappables: [],
+            selectedMappable: null,
             targets: [],
             mappings: {}
         };
@@ -55,6 +56,7 @@ class TermMapper extends React.Component {
                 this.setState({
                     selectedClass: name,
                     mappables: json.localValues,
+                    selectedMappable: null,
                     targets: json.targets,
                     mappings: json.mappings
                 })
@@ -64,21 +66,29 @@ class TermMapper extends React.Component {
     }
 
     handleSelectMappable(name) {
-        const newTarget = Array(10).fill().map((x, ind) => {return name + ind});
-
         this.setState({
             selectedMappable: name,
-            targets: newTarget,
         });
     }
 
     handleSelectTarget(name) {
-        const newMappings = this.state.mappings;
-        newMappings[this.state.selectedMappable] = name;
+        if (this.state.selectedMappable) {
+            let formData = new FormData();
+            formData.append('type', this.state.selectedClass);
+            formData.append('value', this.state.selectedMappable);
+            formData.append('target', name);
 
-        this.setState({
-            mappings: newMappings
-        });
+            do_request(
+                'POST',
+                '/add-mapping', 
+                (json) => {
+                    this.setState({
+                        mappings: json.mappings
+                    });
+                },
+                formData
+            );
+        }
     }
 
     render() {
