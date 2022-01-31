@@ -5,6 +5,13 @@ import './index.css';
 const apiEndpoint = 'http://localhost:5000'
 
 function do_request(method, endpoint, handler, payload = null) {
+    /**
+     * Helper function to communicate with the underlying API
+     * @param {string} method 'POST' or 'GET'
+     * @param {string} endpoint the endpoint to communicate with e.g. /values
+     * @param {function} handler the function that gets passed the returned JSON and handles it
+     * @param {dict} payload (optional) POST content if relevant
+     */
     var xhr = new XMLHttpRequest();
 
     xhr.addEventListener("readystatechange", () => {
@@ -45,10 +52,13 @@ class TermMapper extends React.Component {
     }
 
     handleSelectClass(name) {
+        /**
+         * Handle selecting of a class (which has local values attached to it).
+         * Gets all local values and potential target classes associated with it.
+         * @param {string} name name (unique) of the selected class
+         */
         let formData = new FormData();
         formData.append('type', name);
-
-        // let body = 'type=' + name;
 
         do_request(
             'POST', 
@@ -66,12 +76,22 @@ class TermMapper extends React.Component {
     }
 
     handleSelectMappable(name) {
+        /**
+         * Handles the selection of a local value being selected.
+         * @param {string} name name (unique) of the selected class
+         */
         this.setState({
             selectedMappable: name,
         });
     }
 
     handleSelectTarget(name) {
+        /**
+         * Handles the selection of a target class. Takes the combination of
+         * class + local value + target class and pushes it to the database
+         * for further use.
+         * @param {string} name name (unique) of the selected class
+         */
         if (this.state.selectedMappable) {
             let formData = new FormData();
             formData.append('type', this.state.selectedClass);
@@ -94,6 +114,8 @@ class TermMapper extends React.Component {
     render() {
         return (
             <div className={"Termmapper"}>
+
+            {/* Class select */}
             <select size={20}>
             <option disabled value> -- select an option -- </option>
             {
@@ -109,10 +131,12 @@ class TermMapper extends React.Component {
             }
             </select>
 
+            {/* Local value select */}
             <select size={20}>
             <option disabled value>{ this.state.mappables.length > 0 ? '-- select an option -- ' : ' -- select a class to map -- '}</option>
             {
                 this.state.mappables.map((value) => {
+                    // Display local value, colour it green if a mapping exists for it
                     if (value in this.state.mappings) {
                         return (
                             <option 
@@ -135,10 +159,13 @@ class TermMapper extends React.Component {
             }
             </select>
 
+            {/* Target class select */}
             <select size={20}>
             <option disabled value>{ this.state.mappables.length > 0 ? '-- select an option -- ' : ' -- select a class to map -- '}</option>
             {
                 this.state.targets.map((el) => {
+                    // Display the target class, colour it green if a mapping exists
+                    // for the currently selected local value mapped to this target value
                     if (this.state.selectedMappable in this.state.mappings) {
                         if (this.state.mappings[this.state.selectedMappable] === el.uri) {
                             return (
