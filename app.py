@@ -27,11 +27,11 @@ def get_classes():
     }
 
 @app.route("/values", methods=['GET', 'POST'])
-def get_mappables():
-    uri = URIRef(request.form.get('type'))
-    values = mapper.get_values_for_type(uri)
-    targets = mapper.get_terms_for_type(uri)
-    mappings = mapper.get_mappings_for_type(uri)
+def get_local_values():
+    uri = URIRef(request.form.get('class'))
+    values = mapper.get_values_for_class(uri)
+    targets = mapper.get_targets_for_class(uri)
+    mappings = mapper.get_mappings_for_class(uri)
 
     print(values)
 
@@ -43,13 +43,13 @@ def get_mappables():
 
 @app.route("/add-mapping", methods=['POST'])
 def add_mapping():
-    source_type = URIRef(request.form.get('type'))
+    source_class = URIRef(request.form.get('class'))
     value = request.form.get('value')
     target = URIRef(request.form.get('target'))
 
-    mapper.add_mapping(target, source_type, value)
+    mapper.add_mapping(target, source_class, value)
 
-    mappings = mapper.get_mappings_for_type(URIRef(source_type))
+    mappings = mapper.get_mappings_for_class(URIRef(source_class))
 
     return {
         'mappings': {mapping['value']: str(mapping['target'])for mapping in mappings}

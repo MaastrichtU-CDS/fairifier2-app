@@ -85,7 +85,7 @@ class TermMapper():
         return unmapped
 
     # @cache
-    def get_values_for_type(self, type: URIRef) -> list[str]:
+    def get_values_for_class(self, type: URIRef) -> list[str]:
         query = '''
             PREFIX roo: <http://www.cancerdata.org/roo/>
             PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
@@ -102,7 +102,7 @@ class TermMapper():
         return [res['value']['value'] for res in self.tripleStore.sparql_get(query)]
 
     # @cache
-    def get_terms_for_type(self, type: URIRef) -> dict[str, Union[str, URIRef]]:     
+    def get_targets_for_class(self, type: URIRef) -> dict[str, Union[str, URIRef]]:     
         query = '''
             PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
             PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
@@ -128,7 +128,7 @@ class TermMapper():
 
         return target
 
-    def get_mappings_for_type(self, type: URIRef) -> None:
+    def get_mappings_for_class(self, type: URIRef) -> None:
         """Adds a mapping to the database - essentially an 
         equivalent class in OWL that implies any object that has
         type `type` and value `value` belongs to the target class

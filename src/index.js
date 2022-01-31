@@ -36,8 +36,8 @@ class TermMapper extends React.Component {
         this.state = {
             classes: [],
             selectedClass: null,
-            mappables: [],
-            selectedMappable: null,
+            localVals: [],
+            selectedLocalVal: null,
             targets: [],
             mappings: {}
         };
@@ -58,15 +58,15 @@ class TermMapper extends React.Component {
          * @param {string} name name (unique) of the selected class
          */
         let formData = new FormData();
-        formData.append('type', name);
+        formData.append('class', name);
 
         do_request(
             'POST', 
             '/values', (json) => {
                 this.setState({
                     selectedClass: name,
-                    mappables: json.localValues,
-                    selectedMappable: null,
+                    localVals: json.localValues,
+                    selectedLocalVal: null,
                     targets: json.targets,
                     mappings: json.mappings
                 })
@@ -75,13 +75,13 @@ class TermMapper extends React.Component {
         );
     }
 
-    handleSelectMappable(name) {
+    handleSelectLocalVal(name) {
         /**
          * Handles the selection of a local value being selected.
          * @param {string} name name (unique) of the selected class
          */
         this.setState({
-            selectedMappable: name,
+            selectedLocalVal: name,
         });
     }
 
@@ -92,10 +92,10 @@ class TermMapper extends React.Component {
          * for further use.
          * @param {string} name name (unique) of the selected class
          */
-        if (this.state.selectedMappable) {
+        if (this.state.selectedLocalVal) {
             let formData = new FormData();
-            formData.append('type', this.state.selectedClass);
-            formData.append('value', this.state.selectedMappable);
+            formData.append('class', this.state.selectedClass);
+            formData.append('value', this.state.selectedLocalVal);
             formData.append('target', name);
 
             do_request(
@@ -133,15 +133,15 @@ class TermMapper extends React.Component {
 
             {/* Local value select */}
             <select size={20}>
-            <option disabled value>{ this.state.mappables.length > 0 ? '-- select an option -- ' : ' -- select a class to map -- '}</option>
+            <option disabled value>{ this.state.localVals.length > 0 ? '-- select an option -- ' : ' -- select a class to map -- '}</option>
             {
-                this.state.mappables.map((value) => {
+                this.state.localVals.map((value) => {
                     // Display local value, colour it green if a mapping exists for it
                     if (value in this.state.mappings) {
                         return (
                             <option 
                                 key={value} 
-                                onClick={() => this.handleSelectMappable(value)}
+                                onClick={() => this.handleSelectLocalVal(value)}
                                 style={{color: 'green'}}>
                                 {value}
                             </option>
@@ -150,7 +150,7 @@ class TermMapper extends React.Component {
                     return (
                         <option 
                                 key={value} 
-                                onClick={() => this.handleSelectMappable(value)}>
+                                onClick={() => this.handleSelectLocalVal(value)}>
                                 {value}
                         </option>
                     )
@@ -161,13 +161,13 @@ class TermMapper extends React.Component {
 
             {/* Target class select */}
             <select size={20}>
-            <option disabled value>{ this.state.mappables.length > 0 ? '-- select an option -- ' : ' -- select a class to map -- '}</option>
+            <option disabled value>{ this.state.localVals.length > 0 ? '-- select an option -- ' : ' -- select a class to map -- '}</option>
             {
                 this.state.targets.map((el) => {
                     // Display the target class, colour it green if a mapping exists
                     // for the currently selected local value mapped to this target value
-                    if (this.state.selectedMappable in this.state.mappings) {
-                        if (this.state.mappings[this.state.selectedMappable] === el.uri) {
+                    if (this.state.selectedLocalVal in this.state.mappings) {
+                        if (this.state.mappings[this.state.selectedLocalVal] === el.uri) {
                             return (
                                 <option 
                                     key={el.uri} 
