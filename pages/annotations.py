@@ -61,12 +61,25 @@ layout = html.Div([
     html.H1('Terminology mapping'),
     html.Hr(),
     html.P(),
+    html.H2('Mapping local values'),
+    html.P(),
     html.H4('Choose class:'),
     dcc.Dropdown([c['label'] for c in classes if len(c) == 2], id='input-class'),
     html.Div(id='input-local-values-list'),
     html.Div(id='input-target-list'),
     html.Div(id='button-add-mapping'),
     html.Div(id='output-message'),
+    html.P(),
+    html.Hr(),
+    html.P(),
+    html.H2('Class mappings'),
+    html.P(),
+    html.H4('Choose class:'),
+    dcc.Dropdown(
+        [c['label'] for c in classes if len(c) == 2], id='input-class-mappings'
+    ),
+    html.P(),
+    html.Div(id='output-class-mappings'),
     html.P(),
     html.Hr(),
     html.P(),
@@ -149,3 +162,12 @@ def toggle_fade(n, is_in):
         # Button has never been clicked
         return False
     return not is_in
+
+
+@app.callback(Output('output-class-mappings', 'children'),
+              [Input('input-class-mappings', 'value')])
+def get_mappings_for_class(chosen_class):
+    if chosen_class:
+        uri = URIRef(get_class_uri(chosen_class))
+        mappings = mapper.get_mappings_for_class(URIRef(uri))
+        return html.Plaintext(str(json.dumps(mappings, indent=4)))
