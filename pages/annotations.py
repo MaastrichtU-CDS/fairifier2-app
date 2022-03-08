@@ -32,6 +32,7 @@ mapper = TermMapper(
     )
 )
 classes = mapper.get_unmapped_types()
+initial_n_clicks = 0
 
 
 # ------------------------------------------------------------------------------
@@ -130,11 +131,13 @@ def button_add_mapping(local_value, target):
                Input('input-class', 'value'),
                Input('input-local-value', 'value')])
 def submit_mapping(n_clicks, target, chosen_class, local_value):
-    if n_clicks > 0 and local_value and target:
+    global initial_n_clicks
+    if n_clicks > initial_n_clicks and local_value and target:
         source_class = URIRef(get_class_uri(chosen_class))
         targets = mapper.get_targets_for_class(source_class)
         target_uri = URIRef(get_target_uri(target, targets))
         mapper.add_mapping(target_uri, source_class, local_value)
+        initial_n_clicks = n_clicks
         return html.Plaintext('Successfully added!')
 
 
