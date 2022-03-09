@@ -17,13 +17,14 @@ from rdflib.term import URIRef
 
 from app import app
 from datasources.triples import SPARQLTripleStore
-from fairifier.termmapping import TermMapper
+from mapping.termmapping import TermMapper
 
 
 # ------------------------------------------------------------------------------
 # Inputs
 # ------------------------------------------------------------------------------
 
+# TODO: give address as input for Docker
 triple_addr = 'http://localhost:7200/repositories/data'
 mapper = TermMapper(
     SPARQLTripleStore(
@@ -145,6 +146,7 @@ def button_add_mapping(local_value, target):
                Input('input-local-value', 'value')])
 def submit_mapping(n_clicks, target, chosen_class, local_value):
     global initial_n_clicks
+    # TODO: clear dropdowns after pressing submit
     if n_clicks > initial_n_clicks and local_value and target:
         source_class = URIRef(get_class_uri(chosen_class))
         targets = mapper.get_targets_for_class(source_class)
