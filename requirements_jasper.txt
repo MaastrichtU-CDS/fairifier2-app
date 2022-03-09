@@ -1,5 +1,0 @@
-Flask==2.0.2
-Flask-Cors==3.0.10
-rdflib==6.0.2
-SPARQLWrapper==1.8.5
-git+ssh://git@github.com/jaspersnel/datasources.git@dev
