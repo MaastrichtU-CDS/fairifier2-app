@@ -4,6 +4,7 @@
 FAIRifier's annotations page
 """
 
+import os
 import json
 
 import dash_bootstrap_components as dbc
@@ -24,15 +25,8 @@ from mapping.termmapping import TermMapper
 # Inputs
 # ------------------------------------------------------------------------------
 
-# TODO: give address as input for Docker
-triple_addr = 'http://localhost:7200/repositories/data'
-mapper = TermMapper(
-    SPARQLTripleStore(
-        endpoint=triple_addr,
-        update_endpoint=triple_addr + '/statements'
-    )
-)
-classes = mapper.get_unmapped_types()
+mapper = None
+classes = None
 initial_n_clicks = 0
 
 
@@ -60,12 +54,15 @@ def get_target_uri(chosen_target, targets):
 
 layout = html.Div([
     html.H1('Terminology mapping'),
+    html.P(),
+    dbc.Button('Connect Triple Store', id='connect-triple-store', n_clicks=0),
+    html.Div(id='output-triple-store'),
+    html.P(),
     html.Hr(),
     html.P(),
     html.H2('Mapping local values'),
     html.P(),
-    html.H4('Choose class:'),
-    dcc.Dropdown([c['label'] for c in classes if len(c) == 2], id='input-class'),
+    html.Div(id='input-classes-list'),
     html.Div(id='input-local-values-list'),
     html.Div(id='input-target-list'),
     html.Div(id='button-add-mapping'),
@@ -75,10 +72,7 @@ layout = html.Div([
     html.P(),
     html.H2('Class mappings'),
     html.P(),
-    html.H4('Choose class:'),
-    dcc.Dropdown(
-        [c['label'] for c in classes if len(c) == 2], id='input-class-mappings'
-    ),
+    html.Div(id='output-class-mappings-list'),
     html.P(),
     html.Div(id='output-class-mappings'),
     html.P(),
@@ -89,9 +83,7 @@ layout = html.Div([
     dbc.Button('Show/Hide', id='fade-button', n_clicks=0),
     dbc.Fade(
         dbc.Card(
-            dbc.CardBody(
-                html.Plaintext(str(json.dumps(classes, indent=4)))
-            )
+            html.Div(id='output-unmapped-classes')
         ),
         id='fade',
         is_in=False,
@@ -103,6 +95,39 @@ layout = html.Div([
 # ------------------------------------------------------------------------------
 # Callbacks
 # ------------------------------------------------------------------------------
+
+@app.callback(Output('output-triple-store', 'children'),
+              [Input('connect-triple-store', 'n_clicks')])
+def connect_to_triple_store(n_clicks):
+    global mapper
+    global classes
+    if n_clicks > 0:
+        base_addr = os.getenv('TRIPLE_STORE_ADDR')
+        base_addr = 'http://localhost:7200' if not base_addr else base_addr
+        triple_addr = os.path.join(base_addr, 'repositories', 'data')
+        mapper = TermMapper(
+            SPARQLTripleStore(
+                endpoint=triple_addr,
+                update_endpoint=triple_addr + '/statements'
+            )
+        )
+        classes = mapper.get_unmapped_types()
+        return html.Plaintext('Connection established!')
+    else:
+        return html.Plaintext('')
+
+
+@app.callback(Output('input-classes-list', 'children'),
+              Input('connect-triple-store', 'n_clicks'))
+def get_classes_list(n_clicks):
+    if n_clicks > 0 and classes:
+        return html.Div([
+            html.H4('Choose class:'),
+            dcc.Dropdown(
+                [c['label'] for c in classes if len(c) == 2], id='input-class'
+            ),
+        ])
+
 
 @app.callback(Output('input-local-values-list', 'children'),
                Input('input-class', 'value'))
@@ -156,6 +181,19 @@ def submit_mapping(n_clicks, target, chosen_class, local_value):
         return html.Plaintext('Successfully added!')
 
 
+@app.callback(Output('output-class-mappings-list', 'children'),
+              Input('connect-triple-store', 'n_clicks'))
+def get_class_mappings(n_clicks):
+    if n_clicks > 0 and classes:
+        return html.Div([
+            html.H4('Choose class:'),
+            dcc.Dropdown(
+                [c['label'] for c in classes if len(c) == 2],
+                id='input-class-mappings'
+            )
+        ])
+
+
 @app.callback(Output('fade', 'is_in'),
               [Input('fade-button', 'n_clicks')],
               [State('fade', 'is_in')])
@@ -173,3 +211,16 @@ def get_mappings_for_class(chosen_class):
         uri = URIRef(get_class_uri(chosen_class))
         mappings = mapper.get_mappings_for_class(URIRef(uri))
         return html.Plaintext(str(json.dumps(mappings, indent=4)))
+
+
+@app.callback(Output('output-unmapped-classes', 'children'),
+              Input('connect-triple-store', 'n_clicks'))
+def get_unmapped_classes(n_clicks):
+    if n_clicks > 0 and classes:
+        return html.Div([
+            dbc.CardBody(
+                html.Plaintext(str(json.dumps(classes, indent=4)))
+            )
+        ])
+    else:
+        return html.Plaintext('You need to connect to the Triple Store!')
