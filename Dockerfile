@@ -9,7 +9,9 @@ RUN pip install -r requirements.txt
 COPY . ./
 
 EXPOSE 5050
+ENV TRIPLE_STORE_ADDR=http://localhost:7200
 
-ENV TRIPLE_STORE_ADDR=http://graphdb:7200
+RUN mkdir ./input
+RUN chmod -R a+w ./input
 
 CMD ["python", "./index.py"]

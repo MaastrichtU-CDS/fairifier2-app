@@ -3,8 +3,9 @@
 """
 FAIRifier's input data page
 """
-
 import os
+import glob
+import datetime
 
 import pandas as pd
 
@@ -14,6 +15,7 @@ from dash import dash_table
 from dash.dependencies import Input
 from dash.dependencies import Output
 from dash.dependencies import State
+from zipfile import ZipFile
 
 from app import app
 from data_processing.input_data import parse_content
@@ -70,10 +72,26 @@ layout = html.Div([
         ),
         href='/data'
     ),
+    html.P(),
     html.Div(
         id='hidden-div',
-        style={'display':'none'}
-    )
+        style={'display': 'none'}
+    ),
+    html.P(),
+    html.Hr(),
+    html.H2('Upload to Triple Store'),
+    html.P(),
+    html.A(
+        dcc.ConfirmDialogProvider(
+            id='upload-triple-store',
+            children=html.Button('Upload'),
+            message='Are you sure you want to upload to the Triple Store?'
+        ),
+        href='/data'
+    ),
+    html.P(),
+    html.Div(id='output-upload-airflow'),
+    html.P()
 ])
 
 
@@ -143,3 +161,17 @@ def delete_tables(delete, filenames):
         for filename in filenames:
             os.remove(os.path.join('data', filename))
     return ''
+
+
+@app.callback(Output('output-upload-airflow', 'children'),
+              [Input('upload-triple-store', 'submit_n_clicks')])
+def upload_to_airflow(upload):
+    if upload is not None:
+        zip_path = os.path.join('input', 'data.zip')
+        os.makedirs(os.path.dirname(zip_path), exist_ok=True)
+        file_paths = glob.glob('data/*.csv')
+        with ZipFile(zip_path, 'w') as zipper:
+            for file in file_paths:
+                newfile = 'isala.csv'
+                zipper.write(file, arcname=newfile)
+        return html.Plaintext('Uploaded to Triple Store!')
