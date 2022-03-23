@@ -24,7 +24,6 @@ from mapping.termmapping import TermMapper
 # ------------------------------------------------------------------------------
 # Inputs
 # ------------------------------------------------------------------------------
-
 mapper = None
 classes = None
 initial_n_clicks = 0
@@ -33,7 +32,6 @@ initial_n_clicks = 0
 # ------------------------------------------------------------------------------
 # Utils
 # ------------------------------------------------------------------------------
-
 def get_class_uri(chosen_class):
     global classes
     for c in classes:
@@ -51,7 +49,6 @@ def get_target_uri(chosen_target, targets):
 # ------------------------------------------------------------------------------
 # Annotations page layout
 # ------------------------------------------------------------------------------
-
 layout = html.Div([
     html.H1('Terminology mapping'),
     html.P(),
@@ -95,7 +92,6 @@ layout = html.Div([
 # ------------------------------------------------------------------------------
 # Callbacks
 # ------------------------------------------------------------------------------
-
 @app.callback(Output('output-triple-store', 'children'),
               [Input('connect-triple-store', 'n_clicks')])
 def connect_to_triple_store(n_clicks):
