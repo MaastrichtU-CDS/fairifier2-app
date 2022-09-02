@@ -172,6 +172,5 @@ def upload_to_airflow(upload):
         file_paths = glob.glob('data/*.csv')
         with ZipFile(zip_path, 'w') as zipper:
             for file in file_paths:
-                newfile = 'isala.csv'
-                zipper.write(file, arcname=newfile)
+                zipper.write(file, arcname=file[4:])
         return html.Plaintext('Uploaded to Triple Store!')
