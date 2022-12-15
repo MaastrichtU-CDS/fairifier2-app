@@ -6,6 +6,7 @@ FAIRifier's input data page
 import os
 import glob
 import datetime
+import logging
 
 import pandas as pd
 
@@ -19,6 +20,13 @@ from zipfile import ZipFile
 
 from app import app
 from data_processing.input_data import parse_content
+
+logging.basicConfig(
+    filename='record.log',
+    level=logging.DEBUG,
+    format='%(asctime)s - %(message)s',
+    datefmt='%d-%b-%y %H:%M:%S'
+)
 
 
 # ------------------------------------------------------------------------------
@@ -123,7 +131,17 @@ def upload_tables(contents, filenames):
             df.to_csv(filepath, index=False, encoding='utf-8')
 
             # Success message
+            app.logger.info(f'File {str(filename)} uploaded')
             children.append(html.P(f'File %s uploaded' % filename))
+
+            # Zip data
+            zip_path = os.path.join('input', 'data.zip')
+            os.makedirs(os.path.dirname(zip_path), exist_ok=True)
+            file_paths = glob.glob('data/*.csv')
+            with ZipFile(zip_path, 'w') as zipper:
+                for file in file_paths:
+                    zipper.write(file, arcname=file[4:])
+            app.logger.info(f'Zipped data!')
     else:
         children = html.P()
 
@@ -158,8 +176,10 @@ def display_table(filename):
               [State('data-delete-input', 'value')])
 def delete_tables(delete, filenames):
     if (delete is not None) & (filenames is not None):
+        app.logger.info(f'Delete tables: {str(delete)} and {str(filenames)}')
         for filename in filenames:
             os.remove(os.path.join('data', filename))
+            app.logger.info(f'Deleted {filename}')
     return ''
 
 
@@ -173,4 +193,5 @@ def upload_to_airflow(upload):
         with ZipFile(zip_path, 'w') as zipper:
             for file in file_paths:
                 zipper.write(file, arcname=file[4:])
+        app.logger.info(f'Zipped data!')
         return html.Plaintext('Uploaded to Triple Store!')
