@@ -59,6 +59,7 @@ layout = html.Div([
     html.P(),
     html.H2('Mapping local values'),
     html.P(),
+    html.Div(id='button-get-classes'),
     html.Div(id='input-classes-list'),
     html.Div(id='input-local-values-list'),
     html.Div(id='input-target-list'),
@@ -97,7 +98,6 @@ layout = html.Div([
 def connect_to_triple_store(n_clicks):
     global mapper
     global classes
-    print(n_clicks)
     if n_clicks > 0:
         base_addr = os.getenv('TRIPLE_STORE_ADDR')
         base_addr = 'http://localhost:7200' if not base_addr else base_addr
@@ -109,14 +109,23 @@ def connect_to_triple_store(n_clicks):
             )
         )
         classes = mapper.get_unmapped_types()
-        print(classes)
         return html.Plaintext('Connection established!')
     else:
         return html.Plaintext('')
 
 
+@app.callback(Output('button-get-classes', 'children'),
+              [Input('connect-triple-store', 'n_clicks')])
+def button_get_classes(n_clicks):
+    if n_clicks > 0:
+        return html.Div([
+            html.P(),
+            dbc.Button('Get classes', id='get-classes', n_clicks=0)
+        ])
+
+
 @app.callback(Output('input-classes-list', 'children'),
-              Input('connect-triple-store', 'n_clicks'))
+              Input('get-classes', 'n_clicks'))
 def get_classes_list(n_clicks):
     if n_clicks > 0 and classes:
         return html.Div([
