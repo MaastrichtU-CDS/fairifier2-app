@@ -59,7 +59,6 @@ layout = html.Div([
     html.P(),
     html.H2('Mapping local values'),
     html.P(),
-    html.Div(id='button-get-classes'),
     html.Div(id='input-classes-list'),
     html.Div(id='input-local-values-list'),
     html.Div(id='output-message'),
@@ -107,19 +106,14 @@ def connect_to_triple_store(n_clicks):
             )
         )
         classes = mapper.get_unmapped_types()
-        return html.Plaintext('Connection established!')
+        return html.Div([
+            html.Plaintext('Connection established!'),
+            html.P(),
+            dbc.Button('Get classes', id='get-classes', n_clicks=0),
+            dbc.Button('Get mappings', id='get-mappings', n_clicks=0)
+        ])
     else:
         return html.Plaintext('')
-
-
-@app.callback(Output('button-get-classes', 'children'),
-              [Input('connect-triple-store', 'n_clicks')])
-def button_get_classes(n_clicks):
-    if n_clicks > 0:
-        return html.Div([
-            html.P(),
-            dbc.Button('Get classes', id='get-classes', n_clicks=0)
-        ])
 
 
 @app.callback(Output('input-classes-list', 'children'),
@@ -170,13 +164,13 @@ def submit_mapping(n_clicks, target, chosen_class, local_value):
 
 
 @app.callback(Output('output-class-mappings-list', 'children'),
-              Input('connect-triple-store', 'n_clicks'))
+              [Input('get-mappings', 'n_clicks')])
 def get_class_mappings(n_clicks):
-    if n_clicks > 0 and classes:
+    if n_clicks > 0:
         return html.Div([
             html.H4('Choose class:'),
             dcc.Dropdown(
-                [c['label'] for c in classes if len(c) == 2],
+                [d['label'] for d in classes if len(d) == 2],
                 id='input-class-mappings'
             )
         ])
