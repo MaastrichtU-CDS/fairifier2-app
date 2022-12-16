@@ -97,6 +97,7 @@ layout = html.Div([
 def connect_to_triple_store(n_clicks):
     global mapper
     global classes
+    print(n_clicks)
     if n_clicks > 0:
         base_addr = os.getenv('TRIPLE_STORE_ADDR')
         base_addr = 'http://localhost:7200' if not base_addr else base_addr
@@ -108,6 +109,7 @@ def connect_to_triple_store(n_clicks):
             )
         )
         classes = mapper.get_unmapped_types()
+        print(classes)
         return html.Plaintext('Connection established!')
     else:
         return html.Plaintext('')
@@ -173,7 +175,9 @@ def submit_mapping(n_clicks, target, chosen_class, local_value):
         targets = mapper.get_targets_for_class(source_class)
         target_uri = URIRef(get_target_uri(target, targets))
         mapper.add_mapping(target_uri, source_class, local_value)
+        print('n_clicks = %d; initial_n_clicks = %d' % (n_clicks, initial_n_clicks))
         initial_n_clicks = n_clicks
+        print('n_clicks = %d; initial_n_clicks = %d' % (n_clicks, initial_n_clicks))
         return html.Plaintext('Successfully added!')
 
 
@@ -210,7 +214,7 @@ def get_mappings_for_class(chosen_class):
 
 
 @app.callback(Output('output-unmapped-classes', 'children'),
-              Input('connect-triple-store', 'n_clicks'))
+              Input('fade-button', 'n_clicks'))
 def get_unmapped_classes(n_clicks):
     if n_clicks > 0 and classes:
         return html.Div([
