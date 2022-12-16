@@ -26,7 +26,7 @@ from mapping.termmapping import TermMapper
 # ------------------------------------------------------------------------------
 mapper = None
 classes = None
-initial_n_clicks = 0
+previous_click = 0
 
 
 # ------------------------------------------------------------------------------
@@ -62,8 +62,6 @@ layout = html.Div([
     html.Div(id='button-get-classes'),
     html.Div(id='input-classes-list'),
     html.Div(id='input-local-values-list'),
-    html.Div(id='input-target-list'),
-    html.Div(id='button-add-mapping'),
     html.Div(id='output-message'),
     html.P(),
     html.Hr(),
@@ -137,35 +135,19 @@ def get_classes_list(n_clicks):
 
 
 @app.callback(Output('input-local-values-list', 'children'),
-               Input('input-class', 'value'))
-def get_local_values_list(chosen_class):
+              Input('input-class', 'value'))
+def get_mapping_options(chosen_class):
+    global previous_click
     if chosen_class:
+        previous_click = 0
         uri = URIRef(get_class_uri(chosen_class))
         values = mapper.get_values_for_class(uri)
-        return html.Div([
-            html.H4('Choose local value:'),
-            dcc.Dropdown(values, id='input-local-value')
-        ])
-
-
-@app.callback(Output('input-target-list', 'children'),
-               Input('input-class', 'value'))
-def get_target_list(chosen_class):
-    if chosen_class:
-        uri = URIRef(get_class_uri(chosen_class))
         targets = mapper.get_targets_for_class(uri)
         return html.Div([
+            html.H4('Choose local value:'),
+            dcc.Dropdown(values, id='input-local-value'),
             html.H4('Choose target:'),
-            dcc.Dropdown([t['label'] for t in targets], id='input-target')
-        ])
-
-
-@app.callback(Output('button-add-mapping', 'children'),
-              [Input('input-local-value', 'value'),
-               Input('input-target', 'value')])
-def button_add_mapping(local_value, target):
-    if local_value and target:
-        return html.Div([
+            dcc.Dropdown([t['label'] for t in targets], id='input-target'),
             html.P(),
             dbc.Button('Add mapping', id='add-button', n_clicks=0)
         ])
@@ -177,16 +159,13 @@ def button_add_mapping(local_value, target):
                Input('input-class', 'value'),
                Input('input-local-value', 'value')])
 def submit_mapping(n_clicks, target, chosen_class, local_value):
-    global initial_n_clicks
-    # TODO: clear dropdowns after pressing submit
-    if n_clicks > initial_n_clicks and local_value and target:
+    global previous_click
+    if n_clicks > previous_click and local_value and target:
         source_class = URIRef(get_class_uri(chosen_class))
         targets = mapper.get_targets_for_class(source_class)
         target_uri = URIRef(get_target_uri(target, targets))
         mapper.add_mapping(target_uri, source_class, local_value)
-        print('n_clicks = %d; initial_n_clicks = %d' % (n_clicks, initial_n_clicks))
-        initial_n_clicks = n_clicks
-        print('n_clicks = %d; initial_n_clicks = %d' % (n_clicks, initial_n_clicks))
+        previous_click = n_clicks
         return html.Plaintext('Successfully added!')
 
 
