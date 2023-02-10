@@ -43,7 +43,7 @@ class TermMapper():
         #     OPTIONAL { ?type rdfs:label ?label . }
         #     FILTER(?type NOT IN (owl:NamedIndividual, owl:Thing)) .
         #     FILTER NOT EXISTS {
-        #         ?type owl:equivalentClass [            
+        #         ?type owl:equivalentClass [
         #             rdf:type owl:Class;
         #             owl:intersectionOf [
         #                 rdf:first ?type2;
@@ -109,7 +109,8 @@ class TermMapper():
             SELECT DISTINCT ?subClass ?label 
             WHERE { 
                 ?subClass rdfs:subClassOf+ %s .
-                ?subClass rdfs:label ?label.
+                ?subClass rdfs:label ?label .
+                FILTER(?subClass NOT IN (%s)) .
             }
             ORDER BY ?label
         ''' % (type.n3())
