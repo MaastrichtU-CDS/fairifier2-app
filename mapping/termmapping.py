@@ -113,7 +113,7 @@ class TermMapper():
                 FILTER(?subClass NOT IN (%s)) .
             }
             ORDER BY ?label
-        ''' % (type.n3())
+        ''' % (type.n3(), type.n3())
 
         results = self.tripleStore.sparql_get(query)
 
