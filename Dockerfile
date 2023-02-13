@@ -14,4 +14,7 @@ ENV TRIPLE_STORE_ADDR=http://localhost:7200
 RUN mkdir ./input
 RUN chmod -R a+w ./input
 
+RUN mkdir ./backup
+RUN chmod -R a+w ./backup
+
 CMD ["python", "./index.py"]
