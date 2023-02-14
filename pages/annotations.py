@@ -15,6 +15,7 @@ from dash.dependencies import Input
 from dash.dependencies import Output
 from dash.dependencies import State
 from rdflib.term import URIRef
+from datetime import datetime
 
 from app import app
 from datasources.triples import SPARQLTripleStore
@@ -24,6 +25,7 @@ from mapping.termmapping import TermMapper
 # ------------------------------------------------------------------------------
 # Inputs
 # ------------------------------------------------------------------------------
+store = None
 mapper = None
 classes = None
 previous_click = 0
@@ -54,6 +56,9 @@ layout = html.Div([
     html.P(),
     dbc.Button('Connect Triple Store', id='connect-triple-store', n_clicks=0),
     html.Div(id='output-triple-store'),
+    html.P(),
+    html.Div(id='output-backup-message'),
+    html.Div(id='output-restore-message'),
     html.P(),
     html.Hr(),
     html.P(),
@@ -93,24 +98,28 @@ layout = html.Div([
 @app.callback(Output('output-triple-store', 'children'),
               [Input('connect-triple-store', 'n_clicks')])
 def connect_to_triple_store(n_clicks):
+    global store
     global mapper
     global classes
     if n_clicks > 0:
         base_addr = os.getenv('TRIPLE_STORE_ADDR')
         base_addr = 'http://localhost:7200' if not base_addr else base_addr
         triple_addr = os.path.join(base_addr, 'repositories', 'data')
-        mapper = TermMapper(
-            SPARQLTripleStore(
-                endpoint=triple_addr,
-                update_endpoint=triple_addr + '/statements'
-            )
+        store = SPARQLTripleStore(
+            endpoint=triple_addr,
+            update_endpoint=triple_addr + '/statements',
+            gsp_endpoint=triple_addr + '/rdf-graphs/service'
         )
+        mapper = TermMapper(store)
         classes = mapper.get_unmapped_types()
         return html.Div([
             html.Plaintext('Connection established!'),
             html.P(),
             dbc.Button('Get classes', id='get-classes', n_clicks=0),
-            dbc.Button('Get mappings', id='get-mappings', n_clicks=0)
+            dbc.Button('Get mappings', id='get-mappings', n_clicks=0),
+            html.P(),
+            dbc.Button('Backup', id='backup', n_clicks=0),
+            dbc.Button('Restore', id='restore', n_clicks=0)
         ])
     else:
         return html.Plaintext('')
@@ -173,6 +182,52 @@ def get_class_mappings(n_clicks):
                 [d['label'] for d in classes if len(d) == 2],
                 id='input-class-mappings'
             )
+        ])
+
+
+@app.callback(Output('output-backup-message', 'children'),
+              [Input('backup', 'n_clicks')])
+def get_backup(n_clicks):
+    if n_clicks > 0:
+        # File to store backup
+        now = datetime.now().strftime('%Y%m%d%H%M%S')
+        filename = '%s_backup.ttl' % now
+        filepath = os.path.join('backup', filename)
+        os.makedirs(os.path.dirname(filepath), exist_ok=True)
+
+        # Graph with annotations
+        url = os.getenv('ANNOTATIONS_GRAPH_ADDR')
+        url = 'http://data.local/mapping' if not url else url
+
+        # Get backup
+        store.export_file(filepath, URIRef(url))
+        return html.Div([
+            html.Plaintext('Backup %s successfully saved!' % filename)
+        ])
+
+
+@app.callback(Output('output-restore-message', 'children'),
+              [Input('restore', 'n_clicks')])
+def restore_from_backup(n_clicks):
+    if n_clicks > 0:
+        # Find newest backup
+        if os.path.exists('backup') and len(os.listdir('backup')) != 0:
+            backups = os.listdir('backup')
+            backups.sort(reverse=True)
+            filepath = os.path.join('backup', backups[0])
+        else:
+            return html.Div([
+                html.Plaintext('There is no backup available!')
+            ])
+
+        # Graph with annotations
+        url = os.getenv('ANNOTATIONS_GRAPH_ADDR')
+        url = 'http://data.local/mapping' if not url else url
+
+        # Restore from backup
+        store.import_file(filepath, URIRef(url))
+        return html.Div([
+            html.Plaintext(f'Successfully restored from %s!' % backups[0])
         ])
 
 
