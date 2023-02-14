@@ -10,6 +10,7 @@ COPY . ./
 
 EXPOSE 5050
 ENV TRIPLE_STORE_ADDR=http://localhost:7200
+ENV ANNOTATIONS_GRAPH_ADDR=http://data.local/mapping
 
 RUN mkdir ./input
 RUN chmod -R a+w ./input
