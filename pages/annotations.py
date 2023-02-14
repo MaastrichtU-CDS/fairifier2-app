@@ -202,7 +202,7 @@ def get_backup(n_clicks):
         # Get backup
         store.export_file(filepath, URIRef(url))
         return html.Div([
-            html.Plaintext('Backup successfully saved!')
+            html.Plaintext('Backup %s successfully saved!' % filename)
         ])
 
 
