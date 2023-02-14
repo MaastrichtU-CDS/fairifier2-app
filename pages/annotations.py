@@ -58,6 +58,7 @@ layout = html.Div([
     html.Div(id='output-triple-store'),
     html.P(),
     html.Div(id='output-backup-message'),
+    html.Div(id='output-restore-message'),
     html.P(),
     html.Hr(),
     html.P(),
@@ -118,7 +119,7 @@ def connect_to_triple_store(n_clicks):
             dbc.Button('Get mappings', id='get-mappings', n_clicks=0),
             html.P(),
             dbc.Button('Backup', id='backup', n_clicks=0),
-            dbc.Button('Restore', id='restore', n_clicks=0),
+            dbc.Button('Restore', id='restore', n_clicks=0)
         ])
     else:
         return html.Plaintext('')
@@ -202,6 +203,31 @@ def get_backup(n_clicks):
         store.export_file(filepath, URIRef(url))
         return html.Div([
             html.Plaintext('Backup successfully saved!')
+        ])
+
+
+@app.callback(Output('output-restore-message', 'children'),
+              [Input('restore', 'n_clicks')])
+def restore_from_backup(n_clicks):
+    if n_clicks > 0:
+        # Find newest backup
+        if os.path.exists('backup') and len(os.listdir('backup')) != 0:
+            backups = os.listdir('backup')
+            backups.sort(reverse=True)
+            filepath = os.path.join('backup', backups[0])
+        else:
+            return html.Div([
+                html.Plaintext('There is no backup available!')
+            ])
+
+        # Graph with annotations
+        url = os.getenv('ANNOTATIONS_GRAPH_ADDR')
+        url = 'http://data.local/mapping' if not url else url
+
+        # Restore from backup
+        store.import_file(filepath, URIRef(url))
+        return html.Div([
+            html.Plaintext(f'Successfully restored from %s!' % backups[0])
         ])
 
 
