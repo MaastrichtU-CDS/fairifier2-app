@@ -11,7 +11,9 @@ class TermMapper():
         self.tripleStore = tripleStore
 
     @cache
-    def get_unmapped_types(self) -> list[dict[str, Union[str, URIRef]]]:
+    def get_unmapped_types(
+            self, data_graph: str, ontology_graph: str
+    ) -> list[dict[str, Union[str, URIRef]]]:
         # TODO: allow for other roo:local_value predicates
         query = '''
             PREFIX roo: <http://www.cancerdata.org/roo/>
@@ -20,13 +22,17 @@ class TermMapper():
             PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
             SELECT DISTINCT ?type ?label
             WHERE {
-                ?obj rdf:type ?type.
-                ?obj roo:local_value ?value .
-                OPTIONAL { ?type rdfs:label ?label . }
-                FILTER(?type NOT IN (owl:NamedIndividual, owl:Thing)).
+                GRAPH <%s> {
+                	?obj rdf:type ?type .
+                	?obj roo:local_value ?value .
+                	FILTER(?type NOT IN (owl:NamedIndividual, owl:Thing)).
+                }
+                GRAPH <%s> {
+                    OPTIONAL { ?type rdfs:label ?label . }
+                }
             }
             ORDER BY ?type
-        '''
+        ''' % (data_graph, ontology_graph)
 
         # Alternative query (including check on whether it's been mapped)
         # '''
