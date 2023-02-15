@@ -115,8 +115,12 @@ def connect_to_triple_store(n_clicks):
 
         # Getting unmapped classes
         data_graph = os.getenv('DATA_GRAPH_ADDR')
-        ontology_graph = os.getenv('ONTOLOGY_GRAPH_ADDR')
-        classes = mapper.get_unmapped_types(data_graph, ontology_graph)
+        data_graph = 'http://localhost/mapping' if not data_graph else \
+            data_graph
+        onto_graph = os.getenv('ONTOLOGY_GRAPH_ADDR')
+        onto_graph = 'http://localhost/ontology' if not onto_graph else \
+            onto_graph
+        classes = mapper.get_unmapped_types(data_graph, onto_graph)
 
         # Output for UI
         return html.Div([

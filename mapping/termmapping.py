@@ -12,9 +12,7 @@ class TermMapper():
 
     @cache
     def get_unmapped_types(
-            self,
-            data_graph: str = 'http://localhost/mapping',
-            ontology_graph: str = 'http://localhost/ontology'
+            self, data_graph: str, ontology_graph: str
     ) -> list[dict[str, Union[str, URIRef]]]:
         # TODO: allow for other roo:local_value predicates
         query = '''
