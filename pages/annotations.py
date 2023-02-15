@@ -96,6 +96,7 @@ def connect_to_triple_store(n_clicks):
     global mapper
     global classes
     if n_clicks > 0:
+        # Initialising TerMapper class
         base_addr = os.getenv('TRIPLE_STORE_ADDR')
         base_addr = 'http://localhost:7200' if not base_addr else base_addr
         triple_addr = os.path.join(base_addr, 'repositories', 'data')
@@ -105,7 +106,13 @@ def connect_to_triple_store(n_clicks):
                 update_endpoint=triple_addr + '/statements'
             )
         )
-        classes = mapper.get_unmapped_types()
+
+        # Getting unmapped classes
+        data_graph = os.getenv('DATA_GRAPH_ADDR')
+        ontology_graph = os.getenv('ONTOLOGY_GRAPH_ADDR')
+        classes = mapper.get_unmapped_types(data_graph, ontology_graph)
+
+        # Output for UI
         return html.Div([
             html.Plaintext('Connection established!'),
             html.P(),
