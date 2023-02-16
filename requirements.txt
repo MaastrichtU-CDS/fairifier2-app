@@ -7,4 +7,4 @@ dash-table==5.0.0
 pandas==1.4.1
 rdflib==6.0.2
 SPARQLWrapper==1.8.5
-git+https://github.com/aiaragomes/datasources.git@dev
+git+https://github.com/MaastrichtU-CDS/datasources.git
