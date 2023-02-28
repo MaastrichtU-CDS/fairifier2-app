@@ -29,6 +29,7 @@ store = None
 mapper = None
 classes = None
 previous_click = 0
+original_local_values = None
 
 
 # ------------------------------------------------------------------------------
@@ -152,11 +153,19 @@ def get_classes_list(n_clicks):
               Input('input-class', 'value'))
 def get_mapping_options(chosen_class):
     global previous_click
+    global original_local_values
     if chosen_class:
         previous_click = 0
         uri = URIRef(get_class_uri(chosen_class))
-        values = mapper.get_values_for_class(uri)
+        original_local_values = mapper.get_values_for_class(uri)
         targets = mapper.get_targets_for_class(uri)
+
+        # Remove commas for display to avoid problems in dropdown
+        values = [
+            {'label': label.replace(',', ''), 'value': i}
+            for i, label in enumerate(original_local_values)
+        ]
+
         return html.Div([
             html.H4('Choose local value:'),
             dcc.Dropdown(values, id='input-local-value', multi=True),
@@ -178,7 +187,14 @@ def submit_mapping(n_clicks, target, chosen_class, local_values):
         source_class = URIRef(get_class_uri(chosen_class))
         targets = mapper.get_targets_for_class(source_class)
         target_uri = URIRef(get_target_uri(target, targets))
+
+        # Transform string to list, if only one value chosen
         if type(local_values) == str: local_values = [local_values]
+
+        # Get original local values
+        local_values = [original_local_values[i] for i in local_values]
+
+        # Add mapping
         for local_value in local_values:
             mapper.add_mapping(target_uri, source_class, local_value)
         previous_click = n_clicks
