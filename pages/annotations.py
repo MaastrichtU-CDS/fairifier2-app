@@ -159,7 +159,7 @@ def get_mapping_options(chosen_class):
         targets = mapper.get_targets_for_class(uri)
         return html.Div([
             html.H4('Choose local value:'),
-            dcc.Dropdown(values, id='input-local-value'),
+            dcc.Dropdown(values, id='input-local-value', multi=True),
             html.H4('Choose target:'),
             dcc.Dropdown([t['label'] for t in targets], id='input-target'),
             html.P(),
@@ -172,13 +172,15 @@ def get_mapping_options(chosen_class):
                Input('input-target', 'value'),
                Input('input-class', 'value'),
                Input('input-local-value', 'value')])
-def submit_mapping(n_clicks, target, chosen_class, local_value):
+def submit_mapping(n_clicks, target, chosen_class, local_values):
     global previous_click
-    if n_clicks > previous_click and local_value and target:
+    if n_clicks > previous_click and local_values and target:
         source_class = URIRef(get_class_uri(chosen_class))
         targets = mapper.get_targets_for_class(source_class)
         target_uri = URIRef(get_target_uri(target, targets))
-        mapper.add_mapping(target_uri, source_class, local_value)
+        if type(local_values) == str: local_values = [local_values]
+        for local_value in local_values:
+            mapper.add_mapping(target_uri, source_class, local_value)
         previous_click = n_clicks
         return html.Plaintext('Successfully added!')
 
