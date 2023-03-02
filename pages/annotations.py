@@ -160,9 +160,9 @@ def get_mapping_options(chosen_class):
         original_local_values = mapper.get_values_for_class(uri)
         targets = mapper.get_targets_for_class(uri)
 
-        # Remove commas for display to avoid problems in dropdown
+        # Replacing commas to dots for display to avoid problems in dropdown
         values = [
-            {'label': label.replace(',', ''), 'value': i}
+            {'label': label.replace(',', '.'), 'value': i}
             for i, label in enumerate(original_local_values)
         ]
 
