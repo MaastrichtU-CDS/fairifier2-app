@@ -124,15 +124,22 @@ def connect_to_triple_store(n_clicks):
         classes = mapper.get_unmapped_types(data_graph, onto_graph)
 
         # Output for UI
-        return html.Div([
-            html.Plaintext('Connection established!'),
-            html.P(),
-            dbc.Button('Get classes', id='get-classes', n_clicks=0),
-            dbc.Button('Get mappings', id='get-mappings', n_clicks=0),
-            html.P(),
-            dbc.Button('Backup', id='backup', n_clicks=0),
-            dbc.Button('Restore', id='restore', n_clicks=0)
-        ])
+        if classes:
+            return html.Div([
+                html.Plaintext('Connection established with %s!' % base_addr),
+                html.P(),
+                dbc.Button('Get classes', id='get-classes', n_clicks=0),
+                dbc.Button('Get mappings', id='get-mappings', n_clicks=0),
+                html.P(),
+                dbc.Button('Backup', id='backup', n_clicks=0),
+                dbc.Button('Restore', id='restore', n_clicks=0)
+            ])
+        else:
+            return html.Div(
+                html.Plaintext(
+                    'Cannot establish connection with %s!' % base_addr
+                )
+            )
     else:
         return html.Plaintext('')
 
